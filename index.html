@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제품 및 원자재 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6200ee;
+            --secondary-color: #03dac6;
+            --background-color: #f0f0f0;
+            --surface-color: #ffffff;
+            --on-surface-color: #000000;
+            --error-color: #b00020;
+            --success-color: #4caf50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--on-surface-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: var(--surface-color);
+            border-radius: 50px;
+            padding: 5px;
+            box-shadow:
+                5px 5px 10px rgba(0, 0, 0, 0.1),
+                -5px -5px 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow:
+                inset 3px 3px 5px rgba(0, 0, 0, 0.2),
+                inset -3px -3px 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .content {
+            display: none;
+            position: relative;
+            min-height: 300px;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .item {
+            background-color: var(--surface-color);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow:
+                5px 5px 10px rgba(0, 0, 0, 0.05),
+                -5px -5px 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .item:hover {
+            transform: translateY(-5px);
+            box-shadow:
+                8px 8px 15px rgba(0, 0, 0, 0.1),
+                -8px -8px 15px rgba(255, 255, 255, 0.8);
+        }
+
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow:
+                5px 5px 10px rgba(0, 0, 0, 0.1),
+                -5px -5px 10px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow:
+                10px 10px 20px rgba(0, 0, 0, 0.1),
+                -10px -10px 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: var(--on-surface-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background-color: #f5f5f5;
+            box-shadow:
+                inset 3px 3px 5px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .material-select-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .material-select-group select {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .material-select-group input {
+            width: 80px;
+            margin-right: 10px;
+        }
+
+        /*.material-unit {*/
+        /*  margin-left: 10px;*/
+        /*}*/
+
+        .remove-material {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .remove-material:hover {
+            background-color: #d32f2f;
+        }
+
+        .margin-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .margin-group input {
+            width: 80px;
+            margin-right: 5px;
+        }
+
+        .price-calculation {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow:
+                inset 3px 3px 5px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 5px rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow:
+                5px 5px 10px rgba(0, 0, 0, 0.1),
+                -5px -5px 10px rgba(255, 255, 255, 0.5);
+        }
+
+        button:hover {
+            background-color: #3700b3;
+            box-shadow:
+                3px 3px 5px rgba(0, 0, 0, 0.2),
+                -3px -3px 5px rgba(255, 255, 255, 0.8);
+        }
+
+        .delete-button {
+            background-color: var(--error-color);
+            margin-right: 10px;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        @media (max-width: 768px) {
+            .list {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+            }
+
+            .add-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('products')">제품</div>
+            <div class="tab" onclick="showTab('materials')">원자재</div>
+        </div>
+
+        <div id="products" class="content active">
+            <div class="list" id="productList"></div>
+        </div>
+
+        <div id="materials" class="content">
+            <div class="list" id="materialList"></div>
+        </div>
+
+        <button class="add-button" onclick="openModal(currentTab === 'products' ? 'product' : 'material')">+</button>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('product')">&times;</span>
+            <h2 id="productModalTitle">제품 추가</h2>
+            <div class="form-group">
+                <label for="productName">제품 이름:</label>
+                <input type="text" id="productName" name="productName">
+            </div>
+            <div id="productMaterials"></div>
+            <button class="add-material" onclick="addProductMaterialSelect()">+ 원자재 추가</button>
+            <div class="form-group margin-group">
+                <label for="productMargin">마진:</label>
+                <input type="number" id="productMargin" name="productMargin" min="0" max="100" value="0" onchange="updateProductPrice()">
+                <span>%</span>
+            </div>
+            <div class="price-calculation" id="priceCalculation"></div>
+            <button class="delete-button" onclick="deleteProduct()" style="display: none;">삭제</button>
+            <button onclick="saveProduct()">저장</button>
+        </div>
+    </div>
+
+    <div id="materialModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('material')">&times;</span>
+            <h2 id="materialModalTitle">원자재 추가</h2>
+            <div class="form-group">
+                <label for="materialName">원자재 이름:</label>
+                <input type="text" id="materialName" name="materialName">
+            </div>
+            <div class="form-group">
+                <label for="materialPrice">가격:</label>
+                <input type="number" id="materialPrice" name="materialPrice" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="materialQuantity">수량:</label>
+                <div style="display: flex;">
+                    <input type="number" id="materialQuantity" name="materialQuantity" min="0" style="flex-grow: 1; margin-right: 10px;">
+                    <select id="materialUnit" name="materialUnit">
+                        <option value="1ml">1ml</option>
+                        <option value="1g">1g</option>
+                        <option value="1L">1L</option>
+                        <option value="1kg">1kg</option>
+                    </select>
+                </div>
+            </div>
+            <button class="delete-button" onclick="deleteMaterial()" style="display: none;">삭제</button>
+            <button onclick="saveMaterial()">저장</button>
+        </div>
+    </div>
+
+    <script>
+        let materials = [];
+        let products = [];
+        let currentTab = 'products';
+        let editingItemId = null;
+
+        function showTab(tabName) {
+            currentTab = tabName;
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.content');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`.tab:nth-child(${tabName === 'products' ? 1 : 2})`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function openModal(type, itemId = null) {
+            const modal = document.getElementById(`${type}Modal`);
+            modal.style.display = 'block';
+
+            if (type === 'product') {
+                updateProductMaterialSelects();
+                if (itemId) {
+                    const product = products.find(p => p.id === itemId);
+                    if (product) {
+                        document.getElementById('productModalTitle').textContent = '제품 수정';
+                        document.getElementById('productName').value = product.name;
+                        document.getElementById('productMargin').value = product.margin;
+                        document.querySelector('.delete-button').style.display = 'inline-block';
+                        editingItemId = itemId;
+
+                        // Clear existing material selects
+                        document.getElementById('productMaterials').innerHTML = '';
+
+                        // Add material selects for each material in the product
+                        product.materials.forEach(material => {
+                            addProductMaterialSelect(material.name, material.quantity);
+                        });
+
+                        updateProductPrice();
+                    }
+                } else {
+                    document.getElementById('productModalTitle').textContent = '제품 추가';
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productMargin').value = '0';
+                    document.querySelector('.delete-button').style.display = 'none';
+                    editingItemId = null;
+                    document.getElementById('productMaterials').innerHTML = '';
+                    addProductMaterialSelect();
+                }
+            } else if (type === 'material') {
+                if (itemId) {
+                    const material = materials.find(m => m.id === itemId);
+                    if (material) {
+                        document.getElementById('materialModalTitle').textContent = '원자재 수정';
+                        document.getElementById('materialName').value = material.name;
+                        document.getElementById('materialPrice').value = material.price;
+                        document.getElementById('materialQuantity').value = material.quantity;
+                        document.getElementById('materialUnit').value = material.unit;
+                        document.querySelector('.delete-button').style.display = 'inline-block';
+                        editingItemId = itemId;
+                    }
+                } else {
+                    document.getElementById('materialModalTitle').textContent = '원자재 추가';
+                    document.getElementById('materialName').value = '';
+                    document.getElementById('materialPrice').value = '';
+                    document.getElementById('materialQuantity').value = '';
+                    document.getElementById('materialUnit').value = '1ml';
+                    document.querySelector('.delete-button').style.display = 'none';
+                    editingItemId = null;
+                }
+            }
+        }
+
+        function closeModal(type) {
+            document.getElementById(`${type}Modal`).style.display = 'none';
+            editingItemId = null;
+        }
+
+        function addProductMaterialSelect(materialName = '', quantity = 0) {
+            const productMaterials = document.getElementById('productMaterials');
+            const newSelect = document.createElement('div');
+            newSelect.className = 'material-select-group';
+            newSelect.innerHTML = `
+                <select name="material" onchange="updateProductMaterialUnit(this); updateProductPrice()">
+                    <option value="">선택하세요</option>
+                    ${materials.map(m => `<option value="${m.name}" ${m.name === materialName ? 'selected' : ''}>${m.name}</option>`).join('')}
+                </select>
+                <input type="number" name="quantity" min="0" value="${quantity}" onchange="updateProductPrice()">
+                <span class="material-unit">${materialName ? materials.find(m => m.name === materialName).displayUnit : '-'}</span>
+                <button type="button" class="remove-material" onclick="removeProductMaterialSelect(this)">-</button>
+            `;
+            productMaterials.appendChild(newSelect);
+        }
+
+        function updateProductMaterialUnit(selectElement) {
+            const unitSpan = selectElement.nextElementSibling.nextElementSibling;
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const material = materials.find(m => m.name === selectedOption.value);
+            const unit = material ? material.displayUnit : '-';
+            unitSpan.textContent = unit;
+        }
+
+        function removeProductMaterialSelect(button) {
+            button.closest('.material-select-group').remove();
+            updateProductPrice();
+        }
+
+        function updateProductMaterialSelects() {
+            const productMaterials = document.getElementById('productMaterials');
+            productMaterials.innerHTML = '';
+            addProductMaterialSelect();
+        }
+
+        function updateProductPrice() {
+            const materialGroups = document.querySelectorAll('#productMaterials .material-select-group');
+            let totalMaterialCost = 0;
+
+            materialGroups.forEach(group => {
+                const materialName = group.querySelector('select').value;
+                const quantity = parseFloat(group.querySelector('input[name="quantity"]').value) || 0;
+                const material = materials.find(m => m.name === materialName);
+                if (material) {
+                    totalMaterialCost += material.unitPrice * quantity;
+                }
+            });
+
+            const margin = parseFloat(document.getElementById('productMargin').value) || 0;
+            const marginAmount = totalMaterialCost * (margin / 100);
+            const totalPrice = totalMaterialCost + marginAmount;
+
+            document.getElementById('priceCalculation').innerHTML = `
+                전체 원자재 값 + 마진 값 = 제품 가격<br>
+                ${totalMaterialCost.toFixed(2)} + ${marginAmount.toFixed(2)} = ${totalPrice.toFixed(2)}
+            `;
+        }
+
+        function saveProduct() {
+            const productName = document.getElementById('productName').value;
+            const materialGroups = document.querySelectorAll('#productMaterials .material-select-group');
+            const margin = parseFloat(document.getElementById('productMargin').value) || 0;
+
+            let totalMaterialCost = 0;
+            const productMaterials = [];
+
+            materialGroups.forEach(group => {
+                const materialName = group.querySelector('select').value;
+                const quantity = parseFloat(group.querySelector('input[name="quantity"]').value) || 0;
+                const material = materials.find(m => m.name === materialName);
+                if (material) {
+                    totalMaterialCost += material.unitPrice * quantity;
+                    productMaterials.push({ name: materialName, quantity: quantity });
+                }
+            });
+
+            const marginAmount = totalMaterialCost * (margin / 100);
+            const totalPrice = totalMaterialCost + marginAmount;
+
+            if (productName && productMaterials.length > 0) {
+                const product = {
+                    id: editingItemId || Date.now().toString(),
+                    name: productName,
+                    materials: productMaterials,
+                    margin: margin,
+                    cost: totalMaterialCost,
+                    price: totalPrice
+                };
+
+                if (editingItemId) {
+                    const index = products.findIndex(p => p.id === editingItemId);
+                    if (index !== -1) {
+                        products[index] = product;
+                    }
+                } else {
+                    products.push(product);
+                }
+
+                closeModal('product');
+                renderProducts();
+            } else {
+                alert('제품 이름과 원자재를 입력해주세요.');
+            }
+        }
+
+        function saveMaterial() {
+            const materialName = document.getElementById('materialName').value;
+            const materialPrice = parseFloat(document.getElementById('materialPrice').value);
+            const materialQuantity = parseFloat(document.getElementById('materialQuantity').value);
+            const materialUnit = document.getElementById('materialUnit').value;
+
+            if (materialName && !isNaN(materialPrice) && !isNaN(materialQuantity) && materialQuantity > 0) {
+                let unitPrice, displayUnit;
+                if (materialUnit === '1L') {
+                    unitPrice = materialPrice / (materialQuantity * 1000);
+                    displayUnit = 'ml';
+                } else if (materialUnit === '1kg') {
+                    unitPrice = materialPrice / (materialQuantity * 1000);
+                    displayUnit = 'g';
+                } else {
+                    unitPrice = materialPrice / materialQuantity;
+                    displayUnit = materialUnit.slice(1);
+                }
+
+                const material = {
+                    id: editingItemId || Date.now().toString(),
+                    name: materialName,
+                    price: materialPrice,
+                    quantity: materialQuantity,
+                    unit: materialUnit,
+                    unitPrice: unitPrice,
+                    displayUnit: displayUnit
+                };
+
+                if (editingItemId) {
+                    const index = materials.findIndex(m => m.id === editingItemId);
+                    if (index !== -1) {
+                        materials[index] = material;
+                    }
+                } else {
+                    materials.push(material);
+                }
+
+                closeModal('material');
+                renderMaterials();
+            } else {
+                alert('올바른 값을 입력해주세요.');
+            }
+        }
+
+        function deleteProduct() {
+            if (editingItemId) {
+                const index = products.findIndex(p => p.id === editingItemId);
+                if (index !== -1) {
+                    products.splice(index, 1);
+                    closeModal('product');
+                    renderProducts();
+                }
+            }
+        }
+
+        function deleteMaterial() {
+            if (editingItemId) {
+                const index = materials.findIndex(m => m.id === editingItemId);
+                if (index !== -1) {
+                    materials.splice(index, 1);
+                    closeModal('material');
+                    renderMaterials();
+                }
+            }
+        }
+
+        function renderProducts() {
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.onclick = () => openModal('product', product.id);
+                item.innerHTML = `
+                    <strong>${product.name}</strong><br>
+                    <span>원가: ${product.cost.toFixed(2)} 원</span><br>
+                    <span>마진: ${(product.price - product.cost).toFixed(2)} 원</span><br>
+                    <span>판매가: ${product.price.toFixed(2)} 원</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function renderMaterials() {
+            const list = document.getElementById('materialList');
+            list.innerHTML = '';
+            materials.forEach(material => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                item.onclick = () => openModal('material', material.id);
+                item.innerHTML = `
+                    <strong>${material.name}</strong><br>
+                    ${material.unitPrice.toFixed(2)} (원/${material.displayUnit})
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // 초기 데이터 로드 (예시)
+        materials = [
+            { id: '1', name: '당근', price: 12000, quantity: 1, unit: '1kg', unitPrice: 12, displayUnit: 'g' },
+            { id: '2', name: '오렌지 주스', price: 5000, quantity: 1, unit: '1L', unitPrice: 5, displayUnit: 'ml' },
+            { id: '3', name: '밀가루', price: 3000, quantity: 500, unit: '1g', unitPrice: 6, displayUnit: 'g' }
+        ];
+
+        products = [
+            { id: '1', name: '제품 A', materials: [{ name: '당근', quantity: 100 }, { name: '오렌지 주스', quantity: 50 }], margin: 20, cost: 1450, price: 1740 },
+            { id: '2', name: '제품 B', materials: [{ name: '밀가루', quantity: 200 }, { name: '오렌지 주스', quantity: 100 }], margin: 25, cost: 1700, price: 2125 },
+            { id: '3', name: '제품 C', materials: [{ name: '당근', quantity: 150 }, { name: '밀가루', quantity: 100 }], margin: 30, cost: 2400, price: 3120 }
+        ];
+
+        renderProducts();
+        renderMaterials();
+    </script>
+</body>
+</html>
