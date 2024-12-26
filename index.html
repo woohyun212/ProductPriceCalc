@@ -74,6 +74,22 @@
             display: block;
         }
 
+        .filter-sort {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .filter-sort select {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--surface-color);
+            box-shadow:
+                3px 3px 5px rgba(0, 0, 0, 0.1),
+                -3px -3px 5px rgba(255, 255, 255, 0.5);
+        }
+
         .list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -292,10 +308,41 @@
         </div>
 
         <div id="products" class="content active">
+            <div class="filter-sort">
+                <select id="productCategoryFilter" onchange="filterAndSortProducts()">
+                    <option value="">전체</option>
+                    <option value="부찬">부찬</option>
+                    <option value="중간찬">중간찬</option>
+                    <option value="주찬">주찬</option>
+                    <option value="국찌개">국찌개</option>
+                    <option value="죽">죽</option>
+                    <option value="샐러드">샐러드</option>
+                </select>
+                <select id="productSort" onchange="filterAndSortProducts()">
+                    <option value="name">이름순</option>
+                    <option value="price">가격순</option>
+                </select>
+            </div>
             <div class="list" id="productList"></div>
         </div>
 
         <div id="materials" class="content">
+            <div class="filter-sort">
+                <select id="materialCategoryFilter" onchange="filterAndSortMaterials()">
+                    <option value="">전체</option>
+                    <option value="육류">육류</option>
+                    <option value="가금류">가금류</option>
+                    <option value="해산물">해산물</option>
+                    <option value="야채">야채</option>
+                    <option value="곡류">곡류</option>
+                    <option value="조미료">조미료</option>
+                    <option value="공산품">공산품</option>
+                </select>
+                <select id="materialSort" onchange="filterAndSortMaterials()">
+                    <option value="name">이름순</option>
+                    <option value="price">가격순</option>
+                </select>
+            </div>
             <div class="list" id="materialList"></div>
         </div>
 
@@ -309,6 +356,17 @@
             <div class="form-group">
                 <label for="productName">제품 이름:</label>
                 <input type="text" id="productName" name="productName">
+            </div>
+            <div class="form-group">
+                <label for="productCategory">카테고리:</label>
+                <select id="productCategory" name="productCategory">
+                    <option value="부찬">부찬</option>
+                    <option value="중간찬">중간찬</option>
+                    <option value="주찬">주찬</option>
+                    <option value="국찌개">국찌개</option>
+                    <option value="죽">죽</option>
+                    <option value="샐러드">샐러드</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="totalWeight">생산된 전체 무게 (g):</label>
@@ -340,6 +398,18 @@
                 <input type="text" id="materialName" name="materialName">
             </div>
             <div class="form-group">
+                <label for="materialCategory">카테고리:</label>
+                <select id="materialCategory" name="materialCategory">
+                    <option value="육류">육류</option>
+                    <option value="가금류">가금류</option>
+                    <option value="해산물">해산물</option>
+                    <option value="야채">야채</option>
+                    <option value="곡류">곡류</option>
+                    <option value="조미료">조미료</option>
+                    <option value="공산품">공산품</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="materialPrice">가격:</label>
                 <input type="number" id="materialPrice" name="materialPrice" min="0" step="0.01">
             </div>
@@ -355,7 +425,7 @@
                     </select>
                 </div>
             </div>
-            <button class="delete-button" onclick="deleteMaterial()" style="display: none;">삭제</button>
+            <button class="delete-button" onclick="deleteMaterial()">삭제</button>
             <button onclick="saveMaterial()">저장</button>
         </div>
     </div>
@@ -389,6 +459,7 @@
                     if (product) {
                         document.getElementById('productModalTitle').textContent = '제품 수정';
                         document.getElementById('productName').value = product.name;
+                        document.getElementById('productCategory').value = product.category;
                         document.getElementById('totalWeight').value = product.totalWeight;
                         document.getElementById('unitWeight').value = product.unitWeight;
                         document.getElementById('productCostRate').value = product.costRate;
@@ -408,6 +479,7 @@
                 } else {
                     document.getElementById('productModalTitle').textContent = '제품 추가';
                     document.getElementById('productName').value = '';
+                    document.getElementById('productCategory').value = '부찬';
                     document.getElementById('totalWeight').value = '0';
                     document.getElementById('unitWeight').value = '0';
                     document.getElementById('productCostRate').value = '0';
@@ -422,6 +494,7 @@
                     if (material) {
                         document.getElementById('materialModalTitle').textContent = '원자재 수정';
                         document.getElementById('materialName').value = material.name;
+                        document.getElementById('materialCategory').value = material.category;
                         document.getElementById('materialPrice').value = material.price;
                         document.getElementById('materialQuantity').value = material.quantity;
                         document.getElementById('materialUnit').value = material.unit;
@@ -431,6 +504,7 @@
                 } else {
                     document.getElementById('materialModalTitle').textContent = '원자재 추가';
                     document.getElementById('materialName').value = '';
+                    document.getElementById('materialCategory').value = '육류';
                     document.getElementById('materialPrice').value = '';
                     document.getElementById('materialQuantity').value = '';
                     document.getElementById('materialUnit').value = '1ml';
@@ -512,6 +586,7 @@
 
         function saveProduct() {
             const productName = document.getElementById('productName').value;
+            const productCategory = document.getElementById('productCategory').value;
             const totalWeight = parseFloat(document.getElementById('totalWeight').value) || 0;
             const unitWeight = parseFloat(document.getElementById('unitWeight').value) || 0;
             const costRate = parseFloat(document.getElementById('productCostRate').value) || 0;
@@ -537,6 +612,7 @@
                 const product = {
                     id: editingItemId || Date.now().toString(),
                     name: productName,
+                    category: productCategory,
                     totalWeight: totalWeight,
                     unitWeight: unitWeight,
                     costRate: costRate,
@@ -555,7 +631,7 @@
                 }
 
                 closeModal('product');
-                renderProducts();
+                filterAndSortProducts();
             } else {
                 alert('모든 필드를 올바르게 입력해주세요.');
             }
@@ -563,6 +639,7 @@
 
         function saveMaterial() {
             const materialName = document.getElementById('materialName').value;
+            const materialCategory = document.getElementById('materialCategory').value;
             const materialPrice = parseFloat(document.getElementById('materialPrice').value);
             const materialQuantity = parseFloat(document.getElementById('materialQuantity').value);
             const materialUnit = document.getElementById('materialUnit').value;
@@ -583,6 +660,7 @@
                 const material = {
                     id: editingItemId || Date.now().toString(),
                     name: materialName,
+                    category: materialCategory,
                     price: materialPrice,
                     quantity: materialQuantity,
                     unit: materialUnit,
@@ -600,7 +678,7 @@
                 }
 
                 closeModal('material');
-                renderMaterials();
+                filterAndSortMaterials();
             } else {
                 alert('올바른 값을 입력해주세요.');
             }
@@ -612,7 +690,7 @@
                 if (index !== -1) {
                     products.splice(index, 1);
                     closeModal('product');
-                    renderProducts();
+                    filterAndSortProducts();
                 }
             }
         }
@@ -623,20 +701,61 @@
                 if (index !== -1) {
                     materials.splice(index, 1);
                     closeModal('material');
-                    renderMaterials();
+                    filterAndSortMaterials();
                 }
             }
         }
 
-        function renderProducts() {
+        function filterAndSortProducts() {
+            const categoryFilter = document.getElementById('productCategoryFilter').value;
+            const sortOption = document.getElementById('productSort').value;
+
+            let filteredProducts = products;
+            if (categoryFilter) {
+                filteredProducts = products.filter(p => p.category === categoryFilter);
+            }
+
+            filteredProducts.sort((a, b) => {
+                if (sortOption === 'name') {
+                    return a.name.localeCompare(b.name, 'ko');
+                } else if (sortOption === 'price') {
+                    return a.unitPrice - b.unitPrice;
+                }
+            });
+
+            renderProducts(filteredProducts);
+        }
+
+        function filterAndSortMaterials() {
+            const categoryFilter = document.getElementById('materialCategoryFilter').value;
+            const sortOption = document.getElementById('materialSort').value;
+
+            let filteredMaterials = materials;
+            if (categoryFilter) {
+                filteredMaterials = materials.filter(m => m.category === categoryFilter);
+            }
+
+            filteredMaterials.sort((a, b) => {
+                if (sortOption === 'name') {
+                    return a.name.localeCompare(b.name, 'ko');
+                } else if (sortOption === 'price') {
+                    return a.unitPrice - b.unitPrice;
+                }
+            });
+
+            renderMaterials(filteredMaterials);
+        }
+
+        function renderProducts(productList) {
             const list = document.getElementById('productList');
             list.innerHTML = '';
-            products.forEach(product => {
+            productList.forEach(product => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.onclick = () => openModal('product', product.id);
                 item.innerHTML = `
                     <strong>${product.name}</strong><br>
+                    <span>카테고리: ${product.category}</span><br>
                     <span>원가: ${product.unitCost.toFixed(2)} 원</span><br>
                     <span>판매가: ${product.unitPrice.toFixed(2)} 원</span>
                 `;
@@ -644,15 +763,16 @@
             });
         }
 
-        function renderMaterials() {
+        function renderMaterials(materialList) {
             const list = document.getElementById('materialList');
             list.innerHTML = '';
-            materials.forEach(material => {
+            materialList.forEach(material => {
                 const item = document.createElement('div');
                 item.className = 'item';
                 item.onclick = () => openModal('material', material.id);
                 item.innerHTML = `
                     <strong>${material.name}</strong><br>
+                    <span>카테고리: ${material.category}</span><br>
                     ${material.unitPrice.toFixed(2)} (원/${material.displayUnit})
                 `;
                 list.appendChild(item);
@@ -661,19 +781,19 @@
 
         // 초기 데이터 로드 (예시)
         materials = [
-            { id: '1', name: '당근', price: 12000, quantity: 1, unit: '1kg', unitPrice: 12, displayUnit: 'g' },
-            { id: '2', name: '오렌지 주스', price: 5000, quantity: 1, unit: '1L', unitPrice: 5, displayUnit: 'ml' },
-            { id: '3', name: '밀가루', price: 3000, quantity: 500, unit: '1g', unitPrice: 6, displayUnit: 'g' }
+            { id: '1', name: '당근', category: '야채', price: 12000, quantity: 1, unit: '1kg', unitPrice: 12, displayUnit: 'g' },
+            { id: '2', name: '오렌지 주스', category: '공산품', price: 5000, quantity: 1, unit: '1L', unitPrice: 5, displayUnit: 'ml' },
+            { id: '3', name: '밀가루', category: '곡류', price: 3000, quantity: 500, unit: '1g', unitPrice: 6, displayUnit: 'g' }
         ];
 
         products = [
-            { id: '1', name: '제품 A', materials: [{ name: '당근', quantity: 100 }, { name: '오렌지 주스', quantity: 50 }], totalWeight: 1000, unitWeight: 100, costRate: 80, unitCost: 145, unitPrice: 181.25 },
-            { id: '2', name: '제품 B', materials: [{ name: '밀가루', quantity: 200 }, { name: '오렌지 주스', quantity: 100 }], totalWeight: 2000, unitWeight: 200, costRate: 75, unitCost: 170, unitPrice: 226.67 },
-            { id: '3', name: '제품 C', materials: [{ name: '당근', quantity: 150 }, { name: '밀가루', quantity: 100 }], totalWeight: 1500, unitWeight: 150, costRate: 70, unitCost: 240, unitPrice: 342.86 }
+            { id: '1', name: '제품 A', category: '부찬', materials: [{ name: '당근', quantity: 100 }, { name: '오렌지 주스', quantity: 50 }], totalWeight: 1000, unitWeight: 100, costRate: 80, unitCost: 145, unitPrice: 181.25 },
+            { id: '2', name: '제품 B', category: '중간찬', materials: [{ name: '밀가루', quantity: 200 }, { name: '오렌지 주스', quantity: 100 }], totalWeight: 2000, unitWeight: 200, costRate: 75, unitCost: 170, unitPrice: 226.67 },
+            { id: '3', name: '제품 C', category: '주찬', materials: [{ name: '당근', quantity: 150 }, { name: '밀가루', quantity: 100 }], totalWeight: 1500, unitWeight: 150, costRate: 70, unitCost: 240, unitPrice: 342.86 }
         ];
 
-        renderProducts();
-        renderMaterials();
+        filterAndSortProducts();
+        filterAndSortMaterials();
     </script>
 </body>
 </html>
